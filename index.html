@@ -1,5 +1,5 @@
 <!-- Contenedor para ingresar contraseña -->
-<div id="loginOverlay" class="overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000;">
+<div id="loginOverlay" class="overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 100;">
   <div class="loginPopup" style="background: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);">
     <h2 style="margin-top: 0;">Ingreso Requerido</h2>
     <p>Por favor, ingresa la contraseña para acceder.</p>
@@ -11,15 +11,15 @@
 
 <!-- Contenido principal oculto inicialmente -->
 <div id="content" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center;">
-  <!-- Contenedor para el mensaje de permiso de sonido -->
-  <div id="overlay" class="overlay" style="background: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);">
-    <h2 style="margin-top: 0;">Permisos de Sonido</h2>
-    <p>Activa un sonido de alerta para indicar que se actualizó el número a facilitar</p>
-    <button id="aceptarSonido" style="display: block; margin: 20px auto 0; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">Aceptar</button>
-  </div>
   <!-- Contenedor para mostrar el número de teléfono -->
   <div id="telefonoRandom" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; color: #007bff; text-align:center;">
     <h1 style="margin: 0;">Cargando...</h1>
+  </div>
+  <!-- Contenedor para el mensaje de permiso de sonido -->
+  <div id="soundPermissionOverlay" class="overlay" style="background: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); display: flex; flex-direction: column; align-items: center;">
+    <h2 style="margin-top: 0;">Permisos de Sonido</h2>
+    <p>Activa un sonido de alerta para indicar que se actualizó el número a facilitar</p>
+    <button id="aceptarSonido" style="margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">Aceptar</button>
   </div>
 </div>
 
@@ -30,37 +30,44 @@ document.addEventListener('DOMContentLoaded', function() {
   const errorMessage = document.getElementById('errorMessage');
   const loginOverlay = document.getElementById('loginOverlay');
   const content = document.getElementById('content');
+  const soundPermissionOverlay = document.getElementById('soundPermissionOverlay');
 
   loginButton.addEventListener('click', function() {
     const password = passwordInput.value;
     if (password === 'ring807') {
       loginOverlay.style.display = 'none';
       content.style.display = 'flex';
-      initializeApp();
+      soundPermissionOverlay.style.display = 'flex';
     } else {
       errorMessage.style.display = 'block';
     }
   });
 
+  const aceptarSonidoButton = document.getElementById('aceptarSonido');
+  aceptarSonidoButton.addEventListener('click', function() {
+    soundPermissionOverlay.style.display = 'none';
+    initializeApp();
+  });
+
   function initializeApp() {
-    const overlay = document.getElementById('overlay');
-    const btnAceptar = document.getElementById('aceptarSonido');
     const sonidoUrl = "https://ringwork.org/wp-content/uploads/2021/02/mixkit-flute-cell-phone-alert-2315.wav";
     let numeros = [];
+
+    const exclude = [
+      "807456372", "807456138", "807456792", "807456284", "807456513",
+      "807456760", "807456762", "807456765", "807456761", "807456764",
+      "807456763", "807456766"
+    ];
 
     fetch('https://suitepro.one/call-details/next-807')
       .then(response => response.json())
       .then(data => {
         numeros = data.numbers.filter(numero => !exclude.includes(numero));
+        mostrarNumeroRandom(); // Mostrar un número inmediatamente después de cargar los datos y filtrar
       })
       .catch(error => console.error('Error al cargar los números:', error));
 
-    btnAceptar.addEventListener('click', function() {
-      overlay.style.display = 'none';
-      mostrarNumeroRandom(); // Mostrar un número inmediatamente
-      reproducirSonido(sonidoUrl); // Opcional: reproducir sonido al aceptar
-      setInterval(mostrarNumeroRandom, 180000); // Actualizar número cada 3 minutos
-    });
+    setInterval(mostrarNumeroRandom, 180000); // Actualizar número cada 3 minutos
 
     function mostrarNumeroRandom() {
       if (numeros.length > 0) {
