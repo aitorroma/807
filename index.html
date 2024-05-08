@@ -1,0 +1,92 @@
+<!-- Contenedor para ingresar contraseña -->
+<div id="loginOverlay" class="overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center;">
+  <div class="loginPopup" style="background: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);">
+    <h2 style="margin-top: 0;">Ingreso Requerido</h2>
+    <p>Por favor, ingresa la contraseña para acceder.</p>
+    <input type="password" id="password" placeholder="Contraseña" style="padding: 10px; margin-bottom: 10px; width: 100%; box-sizing: border-box;">
+    <button id="loginButton" style="display: block; width: 100%; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">Ingresar</button>
+    <p id="errorMessage" style="color: red; display: none;">Contraseña incorrecta. Intenta nuevamente.</p>
+  </div>
+</div>
+
+<!-- El resto del contenido original se mantiene oculto hasta que se valide la contraseña -->
+<div id="content" style="display: none;">
+  <!-- Contenedor para el mensaje de permiso de sonido -->
+  <div id="overlay" class="overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center;">
+    <div class="popup" style="background: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);">
+      <h2 style="margin-top: 0;">Permisos de Sonido</h2>
+      <p>Activa un sonido de alerta para indicar que se actualizó el número a facilitar</p>
+      <button id="aceptarSonido" style="display: block; margin: 20px auto 0; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">Aceptar</button>
+    </div>
+  </div>
+
+  <!-- Contenedor para mostrar el número de teléfono -->
+  <div id="telefonoRandom" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; color: #007bff; text-align:center;">
+    <h1 style="margin: 0;">Cargando...</h1>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const loginButton = document.getElementById('loginButton');
+  const passwordInput = document.getElementById('password');
+  const errorMessage = document.getElementById('errorMessage');
+  const loginOverlay = document.getElementById('loginOverlay');
+  const content = document.getElementById('content');
+
+  loginButton.addEventListener('click', function() {
+    const password = passwordInput.value;
+    if (password === 'ring807') {
+      loginOverlay.style.display = 'none';
+      content.style.display = 'block';
+      initializeApp();
+    } else {
+      errorMessage.style.display = 'block';
+    }
+  });
+
+  function initializeApp() {
+    const overlay = document.getElementById('overlay');
+    const btnAceptar = document.getElementById('aceptarSonido');
+    const sonidoUrl = "https://ringwork.org/wp-content/uploads/2021/02/mixkit-flute-cell-phone-alert-2315.wav";
+    let numeros = [];
+
+    // Números a excluir
+    const exclude = [
+      "807456372", "807456138", "807456792", "807456284", "807456513",
+      "807456760", "807456762", "807456765", "807456761", "807456764",
+      "807456763", "807456766"
+    ];
+
+    fetch('https://suitepro.one/call-details/next-807')
+      .then(response => response.json())
+      .then(data => {
+        numeros = data.numbers.filter(numero => !exclude.includes(numero));
+      })
+      .catch(error => console.error('Error al cargar los números:', error));
+
+    btnAceptar.addEventListener('click', function() {
+      overlay.style.display = 'none';
+      mostrarNumeroRandom(); // Mostrar un número inmediatamente
+      reproducirSonido(sonidoUrl); // Opcional: reproducir sonido al aceptar
+      setInterval(mostrarNumeroRandom, 180000); // Actualizar número cada 3 minutos
+    });
+
+    function mostrarNumeroRandom() {
+      if (numeros.length > 0) {
+        const indiceRandom = Math.floor(Math.random() * numeros.length);
+        const numeroSeleccionado = numeros[indiceRandom];
+        document.getElementById('telefonoRandom').innerHTML = '<h1>' + numeroSeleccionado + '</h1>';
+        reproducirSonido(sonidoUrl); // Reproducir sonido con cada actualización
+      } else {
+        document.getElementById('telefonoRandom').innerHTML = '<h1>Error al cargar números</h1>';
+      }
+    }
+
+    function reproducirSonido(url) {
+      const sonido = new Audio(url);
+      sonido.play().catch(error => console.error("Error al reproducir el sonido:", error));
+    }
+  }
+});
+</script>
