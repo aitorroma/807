@@ -52,12 +52,14 @@ document.addEventListener('DOMContentLoaded', function() {
   function initializeApp() {
     const sonidoUrl = "https://ringwork.org/wp-content/uploads/2021/02/mixkit-flute-cell-phone-alert-2315.wav";
     let numeros = [];
+    
+const exclude = [
+  "807456372", "807456138", "807456792", "807456284", "807456513",
+  "807456760", "807456762", "807456765", "807456761", "807456764",
+  "807456763", "807456766",
+  "807456210", "807456211", "807456212", "807456213", "807456214"
+];
 
-    const exclude = [
-      "807456372", "807456138", "807456792", "807456284", "807456513",
-      "807456760", "807456762", "807456765", "807456761", "807456764",
-      "807456763", "807456766"
-    ];
 
     fetch('https://suitepro.one/call-details/next-807')
       .then(response => response.json())
