@@ -11,9 +11,8 @@
 
 <!-- Contenido principal oculto inicialmente -->
 <div id="content" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center;">
-  <!-- Contenedor para mostrar el número de teléfono -->
-  <div id="telefonoRandom" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; color: white; text-align:center;">
-    <h1 style="margin: 0;">Cargando...</h1>
+  <div id="categoriesContainer" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; width: 100%; height: 100%; padding: 20px; box-sizing: border-box;">
+    <!-- Los números y categorías se generarán aquí dinámicamente -->
   </div>
   <!-- Contenedor para el mensaje de permiso de sonido -->
   <div id="soundPermissionOverlay" class="overlay" style="background: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); display: flex; flex-direction: column; align-items: center;">
@@ -31,6 +30,9 @@ document.addEventListener('DOMContentLoaded', function() {
   const loginOverlay = document.getElementById('loginOverlay');
   const content = document.getElementById('content');
   const soundPermissionOverlay = document.getElementById('soundPermissionOverlay');
+  const categoriesContainer = document.getElementById('categoriesContainer');
+
+  const excludedCategories = ['AI', 'baneos'];
 
   loginButton.addEventListener('click', function() {
     const password = passwordInput.value;
@@ -51,24 +53,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function initializeApp() {
     const sonidoUrl = "https://ringwork.org/wp-content/uploads/2021/02/mixkit-flute-cell-phone-alert-2315.wav";
-    let numeros = [];
-
-    const exclude = [
-      "807456372", "807456138", "807456792", "807456284", "807456513",
-      "807456760", "807456762", "807456765", "807456761", "807456764",
-      "807456763", "807456766",
-      "807456210", "807456211", "807456212", "807456213", "807456214",
-      "807456215", "807456216", "807456217", "807456562", "807456563",
-      "807456568", "807456569", "807456594", "807456599", "807456762",
-      "807456767", "807456769", "807456790", "807456595", "807456110", "807456111", "807456112", "807456113", "807456114", "807456115", "807456116", "807456117", "807456118", "807456119", "807456250", "807456251", "807456252", "807456253", "807456254", "807456255", "807456256", "807456257", "807456258", "807456259", "807456320", "807456321", "807456322", "807456323", "807456324", "807456325", "807456326", "807456327", "807456330", "807456331", "807456332", "807456333", "807456334", "807456335", "807456336", "807456337", "807456338", "807456339"
-    ];
 
     function fetchNumeros() {
-      fetch('https://suitepro.one/call-details/next-807')
+      fetch('https://suitepro.one/call-details/next-807-cat')
         .then(response => response.json())
         .then(data => {
-          numeros = data.numbers.filter(numero => !exclude.includes(numero));
-          mostrarNumeroRandom();
+          if (data.success) {
+            const filteredCategories = Object.fromEntries(
+              Object.entries(data.categories).filter(([category]) => !excludedCategories.includes(category))
+            );
+            displayCategories(filteredCategories);
+          } else {
+            console.error('Error: Datos no cargados correctamente');
+          }
         })
         .catch(error => console.error('Error al cargar los números:', error));
     }
@@ -76,20 +73,57 @@ document.addEventListener('DOMContentLoaded', function() {
     fetchNumeros(); // Fetch initial data
     setInterval(fetchNumeros, 180000); // Fetch data every 3 minutes
 
-    function mostrarNumeroRandom() {
-      if (numeros.length > 0) {
-        const indiceRandom = Math.floor(Math.random() * numeros.length);
-        const numeroSeleccionado = numeros[indiceRandom];
-        document.getElementById('telefonoRandom').innerHTML = '<h1>' + numeroSeleccionado + '</h1>';
-        reproducirSonido(sonidoUrl);
-      } else {
-        document.getElementById('telefonoRandom').innerHTML = '<h1>Error al cargar números</h1>';
+    function displayCategories(categories) {
+      categoriesContainer.innerHTML = ''; // Clear existing categories
+      for (const [category, numbers] of Object.entries(categories)) {
+        const categoryDiv = document.createElement('div');
+        categoryDiv.style.display = 'flex';
+        categoryDiv.style.flexDirection = 'column';
+        categoryDiv.style.alignItems = 'center';
+        categoryDiv.style.justifyContent = 'center';
+        categoryDiv.style.background = 'rgba(255, 255, 255, 0.2)';
+        categoryDiv.style.borderRadius = '10px';
+        categoryDiv.style.padding = '20px';
+        
+        const categoryTitle = document.createElement('h2');
+        categoryTitle.style.color = 'white';
+        categoryTitle.textContent = capitalizeFirstLetter(category);
+        categoryDiv.appendChild(categoryTitle);
+
+        const numberContainer = document.createElement('div');
+        numberContainer.id = `numbers-${category}`;
+        categoryDiv.appendChild(numberContainer);
+
+        categoriesContainer.appendChild(categoryDiv);
+
+        updateNumberRandomly(numbers, numberContainer);
+      }
+    }
+
+    function updateNumberRandomly(numbers, container) {
+      mostrarNumeroRandom(); // Mostrar un número inmediatamente después de cargar los datos
+
+      setInterval(mostrarNumeroRandom, 180000); // Actualizar número cada 3 minutos
+
+      function mostrarNumeroRandom() {
+        if (numbers.length > 0) {
+          const indiceRandom = Math.floor(Math.random() * numbers.length);
+          const numeroSeleccionado = numbers[indiceRandom];
+          container.innerHTML = '<h1 style="color: white;">' + numeroSeleccionado + '</h1>';
+          reproducirSonido(sonidoUrl); // Reproducir sonido con cada actualización
+        } else {
+          container.innerHTML = '<h1 style="color: white;">Error al cargar números</h1>';
+        }
       }
     }
 
     function reproducirSonido(url) {
       const sonido = new Audio(url);
       sonido.play().catch(error => console.error("Error al reproducir el sonido:", error));
+    }
+
+    function capitalizeFirstLetter(string) {
+      return string.charAt(0).toUpperCase() + string.slice(1);
     }
   }
 });
