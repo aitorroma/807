@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pantalla de Login</title>
+</head>
+<body style="margin: 0; padding: 0; height: 100vh; display: flex; justify-content: center; align-items: center; background-color: #f0f0f0;">
+
+<!-- Contenedor para ingresar contraseña -->
+<div id="loginOverlay" class="overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 1); display: flex; justify-content: center; align-items: center; z-index: 100;">
+  <div class="loginPopup" style="background: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);">
+    <h2 style="margin-top: 0;">Ingreso Requerido</h2>
+    <p>Por favor, ingresa la contraseña para acceder.</p>
+    <input type="password" id="password" placeholder="Contraseña" style="padding: 10px; margin-bottom: 10px; width: 100%; box-sizing: border-box;">
+    <button id="loginButton" style="display: block; width: 100%; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">Ingresar</button>
+    <p id="errorMessage" style="color: red; display: none;">Contraseña incorrecta. Intenta nuevamente.</p>
+  </div>
+</div>
+
+<!-- Contenido principal oculto inicialmente -->
+<div id="content" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center;">
+  <div id="categoriesContainer" style="display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; height: 100%; padding: 20px; box-sizing: border-box;">
+    <!-- Los números rotativos se mostrarán aquí -->
+  </div>
+</div>
+
+<!-- Contenedor para el mensaje de permiso de sonido -->
+<div id="soundPermissionOverlay" class="overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.7); z-index: 101; display: flex; justify-content: center; align-items: center;">
+  <div class="soundPermissionPopup" style="background: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); text-align: center;">
+    <h2 style="margin-top: 0;">Permisos de Sonido</h2>
+    <p>Activa un sonido de alerta para indicar que se actualizó el número a facilitar</p>
+    <button id="aceptarSonido" style="margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">Aceptar</button>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const loginButton = document.getElementById('loginButton');
+  const passwordInput = document.getElementById('password');
+  const errorMessage = document.getElementById('errorMessage');
+  const loginOverlay = document.getElementById('loginOverlay');
+  const content = document.getElementById('content');
+  const soundPermissionOverlay = document.getElementById('soundPermissionOverlay');
+
+  const numeros = [
+    '807 456 760',
+    '807 456 761',
+    '807 456 762',
+    '807 456 763',
+    '807 456 764',
+    '807 456 765',
+    '807 456 766',
+    '807 456 767',
+    '807 456 768',
+    '807 456 769',
+    '807 456 077', // número obligatorio
+    '807 456 150',
+    '807 456 151',
+    '807 456 152',
+    '807 456 153',
+    '807 456 154',
+    '807 456 155',
+    '807 456 156',
+    '807 456 157',
+    '807 456 158'
+  ];
+
+  let currentIndex = 0;
+
+  loginButton.addEventListener('click', function() {
+    const password = passwordInput.value;
+    if (password === 'ring807') {
+      loginOverlay.style.display = 'none';
+      content.style.display = 'flex';
+      soundPermissionOverlay.style.display = 'flex';
+    } else {
+      errorMessage.style.display = 'block';
+    }
+  });
+
+  const aceptarSonidoButton = document.getElementById('aceptarSonido');
+  aceptarSonidoButton.addEventListener('click', function() {
+    soundPermissionOverlay.style.display = 'none';
+    mostrarNumeroFijo();
+    setInterval(rotarNumeroAleatorio, 180000); // cada 3 minutos
+  });
+
+  function mostrarNumeroFijo() {
+    const numeroAleatorio = numeros[Math.floor(Math.random() * numeros.length)];
+    const numeroContainer = document.createElement('div');
+    numeroContainer.style.display = 'flex';
+    numeroContainer.style.flexDirection = 'column';
+    numeroContainer.style.alignItems = 'center';
+    numeroContainer.style.justifyContent = 'center';
+    numeroContainer.style.background = 'rgba(255, 255, 255, 0.2)';
+    numeroContainer.style.borderRadius = '10px';
+    numeroContainer.style.padding = '20px';
+    numeroContainer.style.width = '100%';
+    numeroContainer.style.height = '100%';
+
+    const numeroTitle = document.createElement('h1');
+    numeroTitle.style.color = 'white';
+    numeroTitle.textContent = numeroAleatorio;
+    numeroContainer.appendChild(numeroTitle);
+
+    const categoriesContainer = document.getElementById('categoriesContainer');
+    categoriesContainer.innerHTML = '';
+    categoriesContainer.appendChild(numeroContainer);
+
+    reproducirSonido("https://weareat.work/mixkit-flute-cell-phone-alert-2315.wav");
+  }
+
+  function rotarNumeroAleatorio() {
+    mostrarNumeroFijo();
+  }
+
+  function reproducirSonido(url) {
+    const sonido = new Audio(url);
+    sonido.play().catch(error => console.error("Error al reproducir el sonido:", error));
+  }
+});
+</script>
+
+</body>
+</html>
